@@ -1,0 +1,66 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/api.Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-200}
+      MAX_AUDIO_MINUTES: ${MAX_AUDIO_MINUTES:-120}
+      JOB_TTL_HOURS: ${JOB_TTL_HOURS:-24}
+      DATA_DIR: /data
+      WHISPER_MODEL: ${WHISPER_MODEL:-small}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ut_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/worker.Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATA_DIR: /data
+      WHISPER_MODEL: ${WHISPER_MODEL:-small}
+      WHISPER_DEVICE: ${WHISPER_DEVICE:-cpu}
+      JOB_TTL_HOURS: ${JOB_TTL_HOURS:-24}
+      HUGGINGFACE_HUB_CACHE: /models
+    volumes:
+      - ut_data:/data
+      - ut_models:/models
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/web.Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  ut_data:
+  ut_models:

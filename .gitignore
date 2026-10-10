@@ -1,0 +1,53 @@
+# --- Dependencies ---
+node_modules/
+**/node_modules/
+
+# --- Python venvs ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Runtime data (uploads/results ของ API) ---
+apps/api/data/
+apps/worker/data/
+data/
+
+# --- Logs ---
+*.log
+npm_install.log
+build.log
+pytest_out.txt
+
+# --- Next.js build output ---
+apps/web/.next/
+apps/web/out/
+
+# --- Expo / React Native ---
+apps/mobile/.expo/
+apps/mobile/node_modules/
+*.apk
+*.aab
+*.ipa
+
+# --- Env & secrets ---
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# --- Test / coverage ---
+coverage/
+.coverage
+.pytest_cache/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# --- Docker model cache อย่า map มาไว้ใน repo ---
+models/
